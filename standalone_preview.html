@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Dashboard - Live Preview</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- NAVBAR COMPONENT ---
+    function Navbar({ currentTab, setCurrentTab }) {
+      const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+      const navClass = (tab) =>
+        `inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+          currentTab === tab
+            ? 'bg-blue-600 text-white shadow-sm'
+            : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100'
+        }`;
+
+      return (
+        <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-16">
+              <div className="flex items-center">
+                <button
+                  onClick={() => setCurrentTab('dashboard')}
+                  className="flex items-center gap-3 focus:outline-none"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20 font-bold">
+                    EP
+                  </div>
+                  <span className="font-bold text-xl tracking-tight text-slate-800">
+                    Emp<span className="text-blue-600">Portal</span>
+                  </span>
+                </button>
+              </div>
+
+              {/* Desktop Tabs */}
+              <div className="hidden md:flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentTab('dashboard')}
+                  className={navClass('dashboard')}
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  Home / Dashboard
+                </button>
+
+                <button
+                  onClick={() => setCurrentTab('form')}
+                  className={navClass('form')}
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  Employee Form
+                </button>
+              </div>
+
+              {/* Mobile Menu button */}
+              <div className="flex items-center md:hidden">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t border-slate-200 px-4 pt-2 pb-4 space-y-1 bg-white">
+              <button
+                onClick={() => { setCurrentTab('dashboard'); setIsMobileMenuOpen(false); }}
+                className={`w-full text-left px-4 py-2 rounded-lg text-base font-semibold ${
+                  currentTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-slate-700'
+                }`}
+              >
+                Home / Dashboard
+              </button>
+              <button
+                onClick={() => { setCurrentTab('form'); setIsMobileMenuOpen(false); }}
+                className={`w-full text-left px-4 py-2 rounded-lg text-base font-semibold ${
+                  currentTab === 'form' ? 'bg-blue-600 text-white' : 'text-slate-700'
+                }`}
+              >
+                Employee Form
+              </button>
+            </div>
+          )}
+        </nav>
+      );
+    }
+
+    // --- EMPLOYEE TABLE COMPONENT ---
+    function EmployeeTable({ employees }) {
+      return (
+        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-200">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                <th className="px-6 py-4">ID</th>
+                <th className="px-6 py-4">Employee Name</th>
+                <th className="px-6 py-4">Email Address</th>
+                <th className="px-6 py-4 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-sm">
+              {employees.map((emp) => (
+                <tr key={emp.id} className="hover:bg-blue-50/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                      #{emp.id}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-xs shadow-sm">
+                        {emp.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                      </div>
+                      <div className="font-semibold text-slate-900">{emp.name}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <a href={`mailto:${emp.email}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+                      {emp.email}
+                    </a>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                      Active
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // --- EMPLOYEE CARDS COMPONENT ---
+    function EmployeeCards({ employees }) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {employees.map((emp) => (
+            <div key={emp.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs">
+                  {emp.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                </div>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                  ID: #{emp.id}
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-slate-900 mb-1">{emp.name}</h3>
+              <p className="text-sm text-blue-600 hover:underline truncate mb-3">
+                <a href={`mailto:${emp.email}`}>{emp.email}</a>
+              </p>
+              <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Active
+                </span>
+                <span className="text-slate-400">Verified</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // --- DASHBOARD COMPONENT ---
+    function Dashboard() {
+      const [employees, setEmployees] = useState([]);
+      const [isLoading, setIsLoading] = useState(true);
+      const [error, setError] = useState(null);
+      const [viewMode, setViewMode] = useState('table');
+      const [searchTerm, setSearchTerm] = useState('');
+
+      const fetchEmployees = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const res = await fetch('https://jsonplaceholder.typicode.com/users');
+          if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+          const data = await res.json();
+          setEmployees(data);
+        } catch (err) {
+          setError(err.message || 'Failed to load');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      useEffect(() => {
+        fetchEmployees();
+      }, []);
+
+      const filtered = employees.filter((e) =>
+        e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        e.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        e.id.toString().includes(searchTerm)
+      );
+
+      return (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Employee Dashboard
+              </h1>
+              <p className="text-slate-500 text-sm mt-1">
+                Data accessed from external API: <code className="bg-slate-100 text-blue-600 px-1 py-0.5 rounded text-xs">https://jsonplaceholder.typicode.com/users</code>
+              </p>
+            </div>
+
+            <div className="inline-flex bg-slate-100 p-1 rounded-xl self-start sm:self-auto border border-slate-200">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                  viewMode === 'table' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'
+                }`}
+              >
+                Table View
+              </button>
+              <button
+                onClick={() => setViewMode('card')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                  viewMode === 'card' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'
+                }`}
+              >
+                Card View
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <input
+              type="text"
+              placeholder="Search by ID, name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-md w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+            />
+            <span className="text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg">
+              Showing <span className="text-blue-600">{filtered.length}</span> of {employees.length} Employees
+            </span>
+          </div>
+
+          {isLoading ? (
+            <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+              <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent mb-3"></div>
+              <p className="text-sm font-semibold text-slate-700">Loading directory from jsonplaceholder API...</p>
+            </div>
+          ) : error ? (
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-6 text-center text-rose-800">
+              <p className="font-bold">Error loading data: {error}</p>
+              <button
+                onClick={fetchEmployees}
+                className="mt-3 px-4 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-semibold"
+              >
+                Retry
+              </button>
+            </div>
+          ) : viewMode === 'table' ? (
+            <EmployeeTable employees={filtered} />
+          ) : (
+            <EmployeeCards employees={filtered} />
+          )}
+        </div>
+      );
+    }
+
+    // --- EMPLOYEE FORM COMPONENT ---
+    function EmployeeForm({ onGoToDashboard }) {
+      const [formData, setFormData] = useState({
+        name: '',
+        designation: '',
+        location: '',
+        salary: '',
+      });
+      const [errors, setErrors] = useState({});
+      const [submitted, setSubmitted] = useState(null);
+
+      const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (errors[e.target.name]) {
+          setErrors({ ...errors, [e.target.name]: '' });
+        }
+      };
+
+      const validate = () => {
+        const errs = {};
+        if (!formData.name.trim()) errs.name = 'Name is required.';
+        if (!formData.designation.trim()) errs.designation = 'Designation is required.';
+        if (!formData.location.trim()) errs.location = 'Location is required.';
+        if (!formData.salary) errs.salary = 'Salary is required.';
+        else if (Number(formData.salary) <= 0) errs.salary = 'Salary must be positive.';
+        setErrors(errs);
+        return Object.keys(errs).length === 0;
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!validate()) return;
+        setSubmitted({ ...formData });
+        setFormData({ name: '', designation: '', location: '', salary: '' });
+      };
+
+      return (
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Employee Form
+              </h1>
+              <p className="text-slate-500 text-sm mt-1">
+                Enter details for Name, Designation, Location, and Salary.
+              </p>
+            </div>
+            <button
+              onClick={onGoToDashboard}
+              className="text-xs font-semibold text-blue-600 hover:underline"
+            >
+              &larr; Back to Dashboard
+            </button>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-800">
+            <span className="font-bold">Assignment Note:</span> No need to post data from Frontend. Submissions are captured locally for verification.
+          </div>
+
+          {submitted && (
+            <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-5 shadow-sm space-y-2">
+              <div className="flex justify-between items-center text-emerald-800 font-bold text-sm">
+                <span>Employee Registered Successfully!</span>
+                <button onClick={() => setSubmitted(null)} className="text-emerald-700">&times;</button>
+              </div>
+              <div className="bg-white p-3 rounded-lg border border-emerald-200 text-xs text-slate-700 grid grid-cols-2 gap-2">
+                <div><span className="text-slate-400">Name:</span> <span className="font-semibold">{submitted.name}</span></div>
+                <div><span className="text-slate-400">Designation:</span> <span className="font-semibold">{submitted.designation}</span></div>
+                <div><span className="text-slate-400">Location:</span> <span className="font-semibold">{submitted.location}</span></div>
+                <div><span className="text-slate-400">Salary:</span> <span className="font-semibold text-emerald-600">${Number(submitted.salary).toLocaleString()}</span></div>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="e.g. Alex Morgan"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {errors.name && <p className="text-xs text-rose-500 mt-1">{errors.name}</p>}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Designation <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="designation"
+                  value={formData.designation}
+                  onChange={handleChange}
+                  placeholder="e.g. Software Engineer"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {errors.designation && <p className="text-xs text-rose-500 mt-1">{errors.designation}</p>}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Location <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  placeholder="e.g. Bangalore / New York / Remote"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {errors.location && <p className="text-xs text-rose-500 mt-1">{errors.location}</p>}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Salary <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="salary"
+                  value={formData.salary}
+                  onChange={handleChange}
+                  placeholder="e.g. 75000"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {errors.salary && <p className="text-xs text-rose-500 mt-1">{errors.salary}</p>}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="reset"
+                  onClick={() => {
+                    setFormData({ name: '', designation: '', location: '', salary: '' });
+                    setErrors({});
+                  }}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl text-sm font-semibold"
+                >
+                  Reset
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-blue-500/20"
+                >
+                  Submit Employee
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // --- MAIN APP COMPONENT ---
+    function App() {
+      const [currentTab, setCurrentTab] = useState('dashboard');
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          <Navbar currentTab={currentTab} setCurrentTab={setCurrentTab} />
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {currentTab === 'dashboard' ? (
+              <Dashboard />
+            ) : (
+              <EmployeeForm onGoToDashboard={() => setCurrentTab('dashboard')} />
+            )}
+          </main>
+          <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+            <p className="font-semibold text-slate-700">Employee Dashboard Assignment</p>
+            <p className="mt-1 text-slate-400">React &bull; Tailwind CSS &bull; JSONPlaceholder API</p>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
